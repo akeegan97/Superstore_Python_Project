@@ -209,10 +209,12 @@ print(big_DFO)
 
 big_14 = big_DFO[big_DFO.index.isin(['2014'], level=1)]
 print(big_14)
+
 profit_2014 = big_14.loc[big_14['Profit'].idxmax()]
 print(profit_2014)
-#above gives the index of the row that has the above max, need to pass this into a filtering method to cut the DF to only that row, 2-step process
-
+profit_2014 = pd.DataFrame(profit_2014)
+profit_2014 = profit_2014.T
+print(profit_2014)
 
 
 
