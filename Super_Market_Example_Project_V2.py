@@ -1,13 +1,7 @@
 
-#Given a set dataset of key variables from a fictional superstore. 
-#Want to find some insight from the dataset with regards to the most valuable customer class, most profitable product, region, etc
-
+#Given a set dataset of key variables from a fictional superstore.
 # file path of data : "C:\Users\Andrew\Desktop\Python_Projects\Super_Market_Project\Sample - Superstore.csv"
 #Dataset given by Kaggle.com open datasets
-
-
-
-
 
 from statistics import mode
 import pandas as pd
@@ -21,38 +15,23 @@ raw_data = pd.read_csv(super_store_data, encoding='Latin1')
 
 """ print(raw_data.head()) """
 
-#rename the column titles to remove - 
 
 
+raw_data.columns = raw_data.columns.str.replace(' ','')
+raw_data.columns = raw_data.columns.str.replace('-','')
 
-raw_data.rename(columns={'Sub-Category' : 'SubCategory'}, inplace = True)
-raw_data.rename(columns={'Order ID' : 'OrderID'}, inplace= True)
-raw_data.rename(columns={'Product Name' : 'ProductName'}, inplace= True)
-raw_data.rename(columns={'Order Date' : 'OrderDate'}, inplace= True)
-raw_data.rename(columns={'Customer ID' : 'CustomerID'}, inplace= True)
-
-####Investigate making this a DataFrame wide Function that removes spaces and special characters, to aid in calling specific columns^^^^
 #Changing standard date to PD DATETIME
-
+#datetime in format YYYY-MM-DD
 raw_data['OrderDate'] = pd.to_datetime(raw_data['OrderDate'], infer_datetime_format= True)
+raw_data['ShipDate'] = pd.to_datetime(raw_data['ShipDate'], infer_datetime_format=True)
 
 
-#breaking DF into the three main categories
+#breaking DF into the the three main categories
 
 
 furniture_df = raw_data.loc[raw_data['Category'] == 'Furniture']
 office_df = raw_data.loc[raw_data['Category'] == 'Office Supplies']
 tech_df = raw_data.loc[raw_data['Category']=='Technology'] 
-
-
-""" #subcategories in each group
-furniture_subcat = furniture_df.SubCategory.unique()
-office_subcat = office_df.SubCategory.unique()
-tech_subcat = tech_df.SubCategory.unique() """
-
-#datetime in format YYYY-MM-DD
-
-
 
 #Function to filter Main DFS by year
 
@@ -75,18 +54,6 @@ def group(dataframe):
 
 
 #need function to take raw_data filter yearly, filter category, filter [profit,state,region,customerID] return df with ex.
-#furniture:
-#profit - xx
-#customer - yy
-#state - zz
-#region - aa
-
-furniture = 'Furniture'
-office = 'Office'
-tech = 'Tech'
-
-
-
 
 def getinfo(df,y1,y2,y3,y4,title):
     year1 = pd.Timestamp(y1,1,1)
@@ -157,7 +124,6 @@ def getinfo(df,y1,y2,y3,y4,title):
     }
     
     dataframe3 = pd.DataFrame(dataframe3)
-    
 
     df4 = df[(df['OrderDate'] >= year4) & (df['OrderDate'] < year5)]
 
@@ -179,10 +145,7 @@ def getinfo(df,y1,y2,y3,y4,title):
     
     dataframe4 = pd.DataFrame(dataframe4)
    
-
-
     dfs_to_combine = (dataframe,dataframe2,dataframe3,dataframe4)
-
 
     DFO = pd.concat(dfs_to_combine)
     
@@ -193,28 +156,44 @@ def getinfo(df,y1,y2,y3,y4,title):
 
 
 
-furniture_out = getinfo(furniture_df,2014,2015,2016,2017,furniture)
-tech_out = getinfo(tech_df,2014,2015,2016,2017,tech)
-office_out = getinfo(office_df,2014,2015,2016,2017,office)
+furniture_out = getinfo(furniture_df,2014,2015,2016,2017,'Furniture')
+tech_out = getinfo(tech_df,2014,2015,2016,2017,'Tech')
+office_out = getinfo(office_df,2014,2015,2016,2017,'Office')
 
 out_DFS = (furniture_out,tech_out,office_out)
 
 big_DFO = pd.concat(out_DFS)
-print(big_DFO)
 
 #which business segment produces the most sales and profit, and YoY growth for each segment
 
+#function for most sales, profit, customers:
 
-#Profit2014
+def answers(df,year,data):
+    df = pd.DataFrame(df)
+    df1 = df[df.index.isin([year],level=1)]
+    df_out = df1.loc[df1[data].idxmax()]
+    df_out = pd.DataFrame(df_out)
+    df_out = df_out.T
+    df_out = df_out[data]
+    df_out =pd.DataFrame(df_out)
+    return df_out
 
-big_14 = big_DFO[big_DFO.index.isin(['2014'], level=1)]
-print(big_14)
 
-profit_2014 = big_14.loc[big_14['Profit'].idxmax()]
-print(profit_2014)
-profit_2014 = pd.DataFrame(profit_2014)
-profit_2014 = profit_2014.T
-print(profit_2014)
+#test
+""" x = answers(big_DFO,2017,'Customers')
+print(x)  """
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
