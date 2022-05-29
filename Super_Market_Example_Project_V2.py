@@ -44,16 +44,15 @@ def yearly(dataframe, start, end):
 
 #grouping sales,profit,quantity by months for a length 12 and width 3 df 
 
-def group(dataframe):
+""" def group(dataframe):
     df = dataframe.groupby(dataframe.OrderDate.dt.month)[['Profit', 'Sales','Quantity']].sum()
 
     df['Months'] = 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
     return df
+ """
 
-#most profit generating business segment:
 
-
-#need function to take raw_data filter yearly, filter category, filter [profit,state,region,customerID] return df with ex.
+#function to take raw_data filter yearly, filter category, filter [profit,state,region,customerID] return df with ex.
 
 def getinfo(df,y1,y2,y3,y4,title):
     year1 = pd.Timestamp(y1,1,1)
@@ -184,14 +183,45 @@ def answers(df,year,data):
 print(x)  """
 
 
+#Forcasting
+
+#want to base it on quantity sold per business segment + sales + profit 
+##need to get yearly grouped by month for quantity sold + sales + profit
 
 
 
+def group(dataframe):
+    df1 =dataframe.copy()
+
+    df1['Year'] = dataframe['OrderDate'].dt.to_period('Y')
+    df1['Month'] = dataframe['OrderDate'].dt.to_period('M')
+
+    df = df1.groupby(['Year','Month'])[['Sales','Quantity','Profit']].sum()
+    df2 = df1.groupby(['Year','Month'])[['CustomerID']].nunique()
+    df2 = df2.rename(columns={'CustomerID':'Customers'})
+    df3 = pd.merge(df,df2,left_index=True,right_index=True)
 
 
+    return df3
 
+sales_furniture = group(furniture_df)
+""" print(sales_furniture) """
 
+y= sales_furniture['Sales']
+y = y.droplevel(level=0)
+y1 = sales_furniture['Profit']
 
+import statsmodels.api as sm
+y.index=y.index.to_timestamp()
+def seasonal_decompose(y):
+    decomposition = sm.tsa.seasonal_decompose(y,model='additive',)
+    fig =decomposition.plot()
+    fig.set_size_inches(14,7)
+    plt.show()
+
+seasonal_decompose(y)
+
+""" print(y) """
 
 
 
