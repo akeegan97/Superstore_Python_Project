@@ -268,7 +268,7 @@ def ADF_test(timeseries, dataDesc):
     for k, v in dftest[4].items():
         print('\t{}: {} - the data is {} stationary with {}% confidence'.format(k,v,'not' if v < dftest[0] else '', 100-int(k[:-1])))
 
-""" ADF_test(y,'RawData') """
+""" ADF_test(y,'Sales') """
 
 """ print(y) """
 
@@ -366,7 +366,7 @@ def sarima_eva(y, order, seasonal_order, seasonal_period, pred_date, y_to_test):
 
 ##predictive results for sales:
 
-def forecast(model, predict_steps, y):
+def forecast(model, predict_steps, y, graph):
     pred_uc = model.get_forecast(steps = predict_steps)
 
     pred_ci = pred_uc.conf_int()
@@ -380,22 +380,25 @@ def forecast(model, predict_steps, y):
     ax.set_xlabel('Date')
     ax.set_ylabel(y.name)
 
-    plt.legend()
-    plt.show()
-
-
     pm = pred_uc.predicted_mean.reset_index()
     pm.columns = ['Date', 'Predicted_Mean']
     pci = pred_ci.reset_index()
     pci.columns = ['Date', 'Lower Bound', 'Upper Bound']
     final_table = pm.join(pci.set_index('Date'), on = 'Date')
+    final_table = pd.DataFrame(final_table)
+
+    if graph =="No":
+        return(final_table)
+    elif graph != "No":
+        plt.legend()
+        plt.show()
 
     return(final_table)
 
-""" final_table = forecast(model,12,y) """
-""" print(final_table) """
+""" final_table = forecast(model,12,y)  """
 
-""" print(sales_furniture) """
+
+""" print(sales_furniture)  """
 
 ###PROFIT###
 #1Seasonality Decomposition
@@ -419,10 +422,26 @@ model_1 = sarima_eva(y1,(0,1,1),(0,1,1,12),12,'2016-12-01',y1_to_val)
 
 forecast(model_1,12,y1)  """
 
+#Quantity of Items sold
+
+y2_to_eval = y2[:'2016-12-01']
+y2_to_val = y2[:'2017-12-01']
+predict_date = len(y2)-len(y2_to_val)
+
+""" seasonal_decompose(y2) """
+""" ADF_test(y2,'Quantity Sold') """
+""" sarima_grid_search(y2,12) """
+model_2 = sarima_eva(y2,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
+forecast(model_2,12,y2,'No')
 
 
+####Results:
+#SARIMA is a good predictor for sales# and quantity sold: next finding the average profit per unit sold, using the predicted units sold to calculate
+#predicted profit amount
 
-
+F_average_profit_per_unit = round(sales_furniture['Profit'].sum()/sales_furniture['Quantity'].sum(),2)
+print(F_average_profit_per_unit)
+#average furniture profit per unit sold is USD2.30 
 
 
 
