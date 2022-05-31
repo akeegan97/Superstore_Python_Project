@@ -377,12 +377,7 @@ def sarima_eva_plots(y,order,seasonal_order,seasonal_period,pred_date,y_to_test)
     plt.show()
 
 
-
-
-
 """ model = sarima_eva(y,(0,1,1),(0,1,1,12),12,'2016-12-01',y_to_val) """
-
-
 
 ##predictive results for sales:
 
@@ -451,9 +446,10 @@ predict_date = len(y2)-len(y2_to_val)
 """ ADF_test(y2,'Quantity Sold') """
 """ sarima_grid_search(y2,12) """
 model_2 = sarima_eva(y2,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
-print(sarima_eva_plots(y2,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval))
-print(forecast(model_2,12,y2))
-print(forecasted_plot(model_2,12,y2))
+
+x = forecast(model_2,12,y2)
+
+print(x)
 
 ####Results:
 #SARIMA is a good predictor for sales# and quantity sold: next finding the average profit per unit sold, using the predicted units sold to calculate
