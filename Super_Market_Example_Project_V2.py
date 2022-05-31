@@ -318,17 +318,38 @@ def sarima_eva(y, order, seasonal_order, seasonal_period, pred_date, y_to_test):
     results = mod.fit()
     print(results.summary().tables[1])
 
-    results.plot_diagnostics(figsize=(16,8))
-    plt.show()
-
-
-
     pred = results.get_prediction(start=pd.to_datetime(pred_date),dynamic = False)
     pred_ci = pred.conf_int()
     y_forecasted = pred.predicted_mean
     mse = ((y_forecasted - y_to_test)**2).mean()
     print('The Root Mean Squared Error of Sarima w/ seasonal_length={} and dynamic = False {}'.format(seasonal_period,round(np.sqrt(mse),2)))
 
+
+    pred_dynamic = results.get_prediction(start = pd.to_datetime(pred_date), dynamic = True, full_results = True)
+    pred_dynamic_ci = pred_dynamic.conf_int()
+    y_forecasted_dynamic = pred_dynamic.predicted_mean
+    mse_dynamic = ((y_forecasted_dynamic - y_to_test)**2).mean()
+    print('The Root Mean Square Error of Sarima w/season_length = {} and dynamic = TRUE {}'.format(seasonal_period,round(np.sqrt(mse_dynamic),2)))
+
+
+    return(results)
+
+#function for evaluation plots:
+
+def sarima_eva_plots(y,order,seasonal_order,seasonal_period,pred_date,y_to_test):
+    mod = sm.tsa.statespace.SARIMAX(
+        y, 
+    order=order,
+    seasonal_order=seasonal_order,
+    enforce_invertibility=False,
+    )
+    results = mod.fit()
+    results.plot_diagnostics(figsize=(16,8))
+    plt.show()
+    pred = results.get_prediction(start=pd.to_datetime(pred_date),dynamic = False)
+    pred_ci = pred.conf_int()
+    y_forecasted = pred.predicted_mean
+    mse = ((y_forecasted - y_to_test)**2).mean()
     ax = y.plot(label = 'Observed')
     y_forecasted.plot(ax=ax, label = 'One-Step ahead Forecast', alpha = .7, figsize = (14,7))
     ax.fill_between(pred_ci.index,
@@ -339,13 +360,11 @@ def sarima_eva(y, order, seasonal_order, seasonal_period, pred_date, y_to_test):
     ax.set_ylabel('Sessions')
     plt.legend()
     plt.show()
-
-
     pred_dynamic = results.get_prediction(start = pd.to_datetime(pred_date), dynamic = True, full_results = True)
     pred_dynamic_ci = pred_dynamic.conf_int()
     y_forecasted_dynamic = pred_dynamic.predicted_mean
     mse_dynamic = ((y_forecasted_dynamic - y_to_test)**2).mean()
-    print('The Root Mean Square Error of Sarima w/season_length = {} and dynamic = TRUE {}'.format(seasonal_period,round(np.sqrt(mse_dynamic),2)))
+    
     ax = y.plot(label = 'Observed')
     y_forecasted_dynamic.plot(label='Dynamic Forecast', ax=ax, figsize = (14,7))
     ax.fill_between(pred_dynamic_ci.index,
@@ -357,7 +376,8 @@ def sarima_eva(y, order, seasonal_order, seasonal_period, pred_date, y_to_test):
     plt.legend()
     plt.show()
 
-    return(results)
+
+
 
 
 """ model = sarima_eva(y,(0,1,1),(0,1,1,12),12,'2016-12-01',y_to_val) """
@@ -366,20 +386,9 @@ def sarima_eva(y, order, seasonal_order, seasonal_period, pred_date, y_to_test):
 
 ##predictive results for sales:
 
-def forecast(model, predict_steps, y, graph):
+def forecast(model, predict_steps, y):
     pred_uc = model.get_forecast(steps = predict_steps)
-
     pred_ci = pred_uc.conf_int()
-    
-
-    ax = y.plot(label = 'Observed', figsize= (14,7))
-    pred_uc.predicted_mean.plot(ax=ax, label = "Forecast")
-    ax.fill_between(pred_ci.index,
-    pred_ci.iloc[:,0],
-    pred_ci.iloc[:,1], color = 'k', alpha = .25)
-    ax.set_xlabel('Date')
-    ax.set_ylabel(y.name)
-
     pm = pred_uc.predicted_mean.reset_index()
     pm.columns = ['Date', 'Predicted_Mean']
     pci = pred_ci.reset_index()
@@ -387,13 +396,23 @@ def forecast(model, predict_steps, y, graph):
     final_table = pm.join(pci.set_index('Date'), on = 'Date')
     final_table = pd.DataFrame(final_table)
 
-    if graph =="No":
-        return(final_table)
-    elif graph != "No":
-        plt.legend()
-        plt.show()
-
     return(final_table)
+#new function for plot
+def forecasted_plot(model,predict_steps,y):
+    pred_uc = model.get_forecast(steps = predict_steps)
+    pred_ci = pred_uc.conf_int()
+    ax = y.plot(label = 'Observed', figsize= (14,7))
+    pred_uc.predicted_mean.plot(ax=ax, label = "Forecast")
+    ax.fill_between(pred_ci.index,
+    pred_ci.iloc[:,0],
+    pred_ci.iloc[:,1], color = 'k', alpha = .25)
+    ax.set_xlabel('Date')
+    ax.set_ylabel(y.name)
+    plt.legend()
+    plt.show()
+
+
+
 
 """ final_table = forecast(model,12,y)  """
 
@@ -432,8 +451,9 @@ predict_date = len(y2)-len(y2_to_val)
 """ ADF_test(y2,'Quantity Sold') """
 """ sarima_grid_search(y2,12) """
 model_2 = sarima_eva(y2,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
-forecast(model_2,12,y2,'No')
-
+print(sarima_eva_plots(y2,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval))
+print(forecast(model_2,12,y2))
+print(forecasted_plot(model_2,12,y2))
 
 ####Results:
 #SARIMA is a good predictor for sales# and quantity sold: next finding the average profit per unit sold, using the predicted units sold to calculate
