@@ -442,14 +442,16 @@ y2_to_eval = y2[:'2016-12-01']
 y2_to_val = y2[:'2017-12-01']
 predict_date = len(y2)-len(y2_to_val)
 
-""" seasonal_decompose(y2) """
-""" ADF_test(y2,'Quantity Sold') """
-""" sarima_grid_search(y2,12) """
+
+""" ADF_test(y2,'Quantity Sold')
+seasonal_decompose(y2)
+sarima_grid_search(y2,12)
 model_2 = sarima_eva(y2,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
+sarima_eva_plots(y2,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
+print(model_2)
+print(forecast(model_2,12,y2))
+forecasted_plot(model_2,12,y2) """
 
-x = forecast(model_2,12,y2)
-
-print(x)
 
 ####Results:
 #SARIMA is a good predictor for sales# and quantity sold: next finding the average profit per unit sold, using the predicted units sold to calculate
@@ -457,7 +459,54 @@ print(x)
 
 F_average_profit_per_unit = round(sales_furniture['Profit'].sum()/sales_furniture['Quantity'].sum(),2)
 print(F_average_profit_per_unit)
+
+
+""" furniture_predictions = forecast(model_2,12,y2) """
+
+
+sales_office = group(office_df)
+O_average_profit_per_unit = round(sales_office['Profit'].sum()/sales_office['Quantity'].sum(),2)
+sales_tech = group(tech_df)
+T_average_profit_per_unit = round(sales_tech['Profit'].sum()/sales_tech['Quantity'].sum(),2)
+sales_o = sales_office['Quantity']
+sales_o = sales_o.droplevel(level=0)
+sales_t = sales_tech['Quantity']
+sales_t = sales_tech.droplevel(level=0)
+sales_o.index=sales_o.index.to_timestamp()
+sales_t.index=sales_t.index.to_timestamp()
+
+#ADF_test(sales_o,'Quantity')
+#seasonal_decompose(sales_o)
+#sarima_grid_search(sales_o,12)
+model_o = sarima_eva(sales_o,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
+#sarima_eva_plots(sales_o,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
+#forecasted_plot(model_o,12,sales_o)
+
+out_o = forecast(model_o,12,sales_o)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #average furniture profit per unit sold is USD2.30 
+##from here 
+
 
 
 
