@@ -471,7 +471,7 @@ T_average_profit_per_unit = round(sales_tech['Profit'].sum()/sales_tech['Quantit
 sales_o = sales_office['Quantity']
 sales_o = sales_o.droplevel(level=0)
 sales_t = sales_tech['Quantity']
-sales_t = sales_tech.droplevel(level=0)
+sales_t = sales_t.droplevel(level=0)
 sales_o.index=sales_o.index.to_timestamp()
 sales_t.index=sales_t.index.to_timestamp()
 
@@ -484,10 +484,17 @@ model_o = sarima_eva(sales_o,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
 
 out_o = forecast(model_o,12,sales_o)
 
+#ADF_test(sales_t,'Quantity')
+#seasonal_decompose(sales_t)
+#sarima_grid_search(sales_t,12)
+model_t = sarima_eva(sales_t,(0,1,1),(0,1,1,12),12,'2016-12-01',y1_to_eval)
+#sarima_eva_plots(sales_t,(0,1,1),(0,1,1,12),12,'2016-12-01',y1_to_eval)
+#forecasted_plot(model_t,12,sales_t)
+out_t = forecast(model_o,12,sales_o)
 
 
-
-
+####All three categories are stationary, next calculate average profit per unit sold, using that building a new DF with historical
+#profits + units and the forecasted amounts, make another plot with all three plus the lower, median, upper bounded forecasted amounts for the cats
 
 
 
