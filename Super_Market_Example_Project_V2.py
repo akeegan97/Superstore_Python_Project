@@ -498,10 +498,20 @@ out_t = forecast(model_o,12,sales_o)
 
 
 
+out_o_2 = out_o.copy(deep=True)
+print(O_average_profit_per_unit)
+O_average_sales_per_unit = round(sales_office['Sales'].sum()/sales_office['Quantity'].sum(),2)
+#AVERAGE PROFIT PER UNIT SOLD $5.35
 
-
-
-
+out_o_2[['Predicted_Mean','Lower Bound','Upper Bound']] = out_o_2[['Predicted_Mean','Lower Bound','Upper Bound']] * O_average_profit_per_unit
+out_o_2['Date'] = pd.to_datetime(out_o_2['Date'], infer_datetime_format= True)
+out_o_2['Year'] = out_o_2['Date'].dt.to_period('Y')
+out_o_2['Month'] = out_o_2['Date'].dt.to_period('M')
+out_o_2 = out_o_2.drop(columns='Date')
+out_o_2 = out_o_2.set_index(['Year', 'Month'])
+out_o_2 = out_o_2.rename(columns={'Predicted_Mean' : 'Profit'})
+print(out_o_2)
+""" print(O_average_sales_per_unit) """# = 31.39
 
 
 
