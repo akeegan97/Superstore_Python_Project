@@ -512,12 +512,14 @@ out_o_2 = out_o_2.set_index(['Year', 'Month'])
 out_o_2 = out_o_2.rename(columns={'Predicted_Mean' : 'Profit'})
 print(out_o_2)
 """ print(O_average_sales_per_unit) """# = 31.39
+print((sales_office['Sales'].sum()/sales_office['Customers'].sum()))
 
-
-
-
-
-
+unitsM_office_array = np.array(out_o['Predicted_Mean'])
+unitsU_office_array = np.array(out_o['Upper Bound'])
+unitsL_office_array = np.array(out_o['Lower Bound'])
+date = np.array(out_o['Date'])
+print(date)
+print(unitsM_office_array)
 
 
 
