@@ -3,10 +3,7 @@
 # file path of data : "C:\Users\Andrew\Desktop\Python_Projects\Super_Market_Project\Sample - Superstore.csv"
 #Dataset given by Kaggle.com open datasets
 
-from pickle import TRUE
 from statistics import mode
-from turtle import color
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt 
@@ -497,7 +494,7 @@ out_t = forecast(model_o,12,sales_o)
 
 
 out_o_2 = out_o.copy(deep=True)
-print(O_average_profit_per_unit)
+
 O_average_sales_per_unit = round(sales_office['Sales'].sum()/sales_office['Quantity'].sum(),2)
 #AVERAGE PROFIT PER UNIT SOLD $5.35
 
@@ -534,7 +531,7 @@ dfs = (sales_office_out,office_df_to_concat)
 
 final_office_df = pd.concat(dfs)
 
-print(final_office_df)
+
 ##ALL OUT_XXX are for QUANTITY FORECASTS
 """ 
 print(out_t)
@@ -572,18 +569,78 @@ dfs_furniture = (sales_furniture,furniture_df_to_concat)
 
 final_furniture_df = pd.concat(dfs_furniture)
 final_furniture_df = final_furniture_df.drop(columns='Customers')
-print(final_furniture_df)
+
+
 out_f_sales = out_f[['Predicted_Mean','Lower Bound','Upper Bound']] * F_average_sales_per_unit
 out_f_profit = out_f[['Predicted_Mean','Lower Bound', 'Upper Bound']] * F_average_profit_per_unit
 out_o_sales = out_o[['Predicted_Mean','Lower Bound', 'Upper Bound']]* O_average_sales_per_unit
 out_o_profit = out_o[['Predicted_Mean','Lower Bound', 'Upper Bound']] * O_average_profit_per_unit
 
+##Tech forecast + Historicals
+
+T_average_sales_per_unit = sales_tech['Sales'].sum()/sales_tech['Quantity'].sum()
+
+out_t_sales = out_t[['Predicted_Mean', 'Lower Bound', 'Upper Bound']] * T_average_sales_per_unit
+out_t_profit = out_t[['Predicted_Mean', 'Lower Bound', 'Upper Bound']] * T_average_profit_per_unit
+
+sales_tech_forecast = np.array(out_t_sales['Predicted_Mean'])
+profit_tech_forecast = np.array(out_t_profit['Predicted_Mean'])
+tech_date = pd.to_datetime(out_t['Date'])
+tech_units = np.array(out_t['Predicted_Mean'])
+
+tech_df_to_concat = pd.DataFrame(
+    {
+    'Date' : tech_date,
+    'Sales': sales_tech_forecast,
+    'Quantity' : tech_units,
+    'Profit' : profit_tech_forecast
+}
+)
+
+tech_df_to_concat['Year'] = tech_df_to_concat['Date'].dt.to_period('Y')
+tech_df_to_concat['Month'] = tech_df_to_concat['Date'].dt.to_period('M')
+tech_df_to_concat = tech_df_to_concat.drop(columns='Date')
+ftech_df_to_concat = tech_df_to_concat.set_index(['Year','Month'])
+dfs_tech = (sales_tech,tech_df_to_concat)
+
+final_tech_df = pd.concat(dfs_tech)
+final_tech_df = final_tech_df.drop(columns='Customers')
+
+
+
+##from here plots
+
+##sales
+
+sales_furniture_plot = np.array(final_furniture_df['Sales'])
+sales_tech_plot = np.array(final_tech_df['Sales'])
+sales_office_plot = np.array(final_office_df['Sales'])
+profit_furniture_plot = np.array(final_furniture_df['Profit'])
+profit_office_plot =np.array(final_office_df['Profit'])
+profit_tech_plot = np.array(final_tech_df['Profit'])
+
+#getting x-value-timeseries
+new_axis_df = final_furniture_df.reset_index(level=1)
+
+
+""" plt.plot(x_axis, sales_furniture_plot, label = 'Furniture Sales')
+plt.plot(x_axis, sales_office_plot, label = 'Office Sales')
+plt.plot(x_axis, sales_tech_plot, label = 'Tech Sales')
+plt.legend()
+
+
+print(x_axis) """
 
 
 
 
-#average furniture profit per unit sold is USD2.30 
-##from here 
+
+
+
+
+
+
+
 
 
 
