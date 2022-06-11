@@ -3,6 +3,7 @@
 # file path of data : "C:\Users\Andrew\Desktop\Python_Projects\Super_Market_Project\Sample - Superstore.csv"
 #Dataset given by Kaggle.com open datasets
 
+from calendar import month
 from statistics import mode
 import pandas as pd
 import numpy as np
@@ -485,7 +486,7 @@ out_o = forecast(model_o,12,sales_o)
 model_t = sarima_eva(sales_t,(0,1,1),(0,1,1,12),12,'2016-12-01',y1_to_eval)
 #sarima_eva_plots(sales_t,(0,1,1),(0,1,1,12),12,'2016-12-01',y1_to_eval)
 #forecasted_plot(model_t,12,sales_t)
-out_t = forecast(model_o,12,sales_o)
+out_t = forecast(model_t,12,sales_t)
 
 
 ####All three categories are stationary, next calculate average profit per unit sold, using that building a new DF with historical
@@ -600,7 +601,7 @@ tech_df_to_concat = pd.DataFrame(
 tech_df_to_concat['Year'] = tech_df_to_concat['Date'].dt.to_period('Y')
 tech_df_to_concat['Month'] = tech_df_to_concat['Date'].dt.to_period('M')
 tech_df_to_concat = tech_df_to_concat.drop(columns='Date')
-ftech_df_to_concat = tech_df_to_concat.set_index(['Year','Month'])
+tech_df_to_concat = tech_df_to_concat.set_index(['Year','Month'])
 dfs_tech = (sales_tech,tech_df_to_concat)
 
 final_tech_df = pd.concat(dfs_tech)
@@ -620,36 +621,33 @@ profit_office_plot =np.array(final_office_df['Profit'])
 profit_tech_plot = np.array(final_tech_df['Profit'])
 
 #getting x-value-timeseries
-new_axis_df = final_furniture_df.reset_index(level=1)
+new_axis_df = final_furniture_df.droplevel(level=0)
 
+new_axis_df = new_axis_df.reset_index()
 
-""" plt.plot(x_axis, sales_furniture_plot, label = 'Furniture Sales')
-plt.plot(x_axis, sales_office_plot, label = 'Office Sales')
-plt.plot(x_axis, sales_tech_plot, label = 'Tech Sales')
+new_axis_df['Month'] = new_axis_df['Month'].dt.to_timestamp('s').dt.strftime('%Y-%m')
+
+x_axis = new_axis_df['Month']
+
+x_TICKS = 12
+plt.figure(figsize=(18,7))
+plt.plot(x_axis, sales_furniture_plot, 'r', label = 'Furniture Sales')
+plt.plot(x_axis,sales_tech_plot,'b', label = 'Tech Sales')
+plt.plot(x_axis, sales_office_plot,'c', label = 'Office Sales')
+plt.xticks(range(0, len(x_axis), x_TICKS),x_axis[::x_TICKS], rotation = 45)
+plt.title('Sales Historical + Forecasted \n Furniture Office Tech')
 plt.legend()
+plt.show()
 
-
-print(x_axis) """
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+x_TICKS = 12
+plt.figure(figsize=(18,7))
+plt.plot(x_axis,profit_furniture_plot,'r', label = 'Furniture Profit')
+plt.plot(x_axis,profit_office_plot,'b', label = 'Office Profit')
+plt.plot(x_axis,profit_tech_plot,'c', label = 'Tech Profit')
+plt.xticks(range(0, len(x_axis), x_TICKS),x_axis[::x_TICKS], rotation = 45)
+plt.title('Profit Historical + Forecasted \n Furniture Office Tech')
+plt.legend()
+plt.show()
 
 
 #OutPut_DF.to_csv(r"C:\Users\Andrew\Desktop\Python_Projects\Super_Market_Project\test.csv",index=False)
