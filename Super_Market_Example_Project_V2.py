@@ -3,7 +3,6 @@
 # file path of data : "C:\Users\Andrew\Desktop\Python_Projects\Super_Market_Project\Sample - Superstore.csv"
 #Dataset given by Kaggle.com open datasets
 
-from calendar import month
 from statistics import mode
 import pandas as pd
 import numpy as np
@@ -650,7 +649,7 @@ plt.legend()
 plt.show()
 
 
-#OutPut_DF.to_csv(r"C:\Users\Andrew\Desktop\Python_Projects\Super_Market_Project\test.csv",index=False)
+
 
 
 
