@@ -4,6 +4,7 @@
 #Dataset given by Kaggle.com open datasets
 
 from statistics import mode
+from xml.parsers.expat import model
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt 
@@ -26,7 +27,7 @@ raw_data['OrderDate'] = pd.to_datetime(raw_data['OrderDate'], infer_datetime_for
 raw_data['ShipDate'] = pd.to_datetime(raw_data['ShipDate'], infer_datetime_format=True)
 
 
-#breaking DF into the the three main categories
+#Making 3 new Dataframes filtered raw_data by Main Category
 
 
 furniture_df = raw_data.loc[raw_data['Category'] == 'Furniture']
@@ -41,18 +42,7 @@ def yearly(dataframe, start, end):
     newdf = dataframe[(dataframe['OrderDate'] >= start_date) & (dataframe['OrderDate'] <= end_date)]
     return newdf
 
-
-#grouping sales,profit,quantity by months for a length 12 and width 3 df 
-
-""" def group(dataframe):
-    df = dataframe.groupby(dataframe.OrderDate.dt.month)[['Profit', 'Sales','Quantity']].sum()
-
-    df['Months'] = 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
-    return df
- """
-
-
-#function to take raw_data filter yearly, filter category, filter [profit,state,region,customerID] return df with ex.
+##Function to take the 3 filtered DFS, and return a DF that is multiindexed with columns [Profit, State, Region, Customers]
 
 def getinfo(df,y1,y2,y3,y4,title):
     year1 = pd.Timestamp(y1,1,1)
@@ -159,13 +149,15 @@ furniture_out = getinfo(furniture_df,2014,2015,2016,2017,'Furniture')
 tech_out = getinfo(tech_df,2014,2015,2016,2017,'Tech')
 office_out = getinfo(office_df,2014,2015,2016,2017,'Office')
 
+###combining the three seperate "getinfo" dfs into one main that consists of a multiindexed DF (year, month) and columns Profit, Sales, State, Region, 
+
 out_DFS = (furniture_out,tech_out,office_out)
 
 big_DFO = pd.concat(out_DFS)
 
-#which business segment produces the most sales and profit, and YoY growth for each segment
 
-#function for most sales, profit, customers:
+##Define Function that takes Big_DFO and gives which category had the highest Profit, Sales, or number of Customers for a given Year
+
 
 def answers(df,year,data):
     df = pd.DataFrame(df)
@@ -178,15 +170,12 @@ def answers(df,year,data):
     return df_out
 
 
-#test
-""" x = answers(big_DFO,2017,'Customers')
-print(x)  """
 
 
-#Forcasting
 
-#want to base it on quantity sold per business segment + sales + profit 
-##need to get yearly grouped by month for quantity sold + sales + profit
+
+###Forcasting
+#Forecasting the number of units sold per each business category tech, furniture, and office supplies
 
 
 
@@ -204,36 +193,56 @@ def group(dataframe):
 
     return df3
 
-sales_furniture = group(furniture_df)
-""" print(sales_furniture)  """
 
-y= sales_furniture['Sales']
-y = y.droplevel(level=0)
-y1 = sales_furniture['Profit']
-y1 = y1.droplevel(level=0)
-y2 = sales_furniture['Quantity']
-y2 = y2.droplevel(level=0)
+###Getting all categories grouped and ready to be ran through following functions
 
+##Furniture
+furniture_grouped = group(furniture_df)
+sales_f = furniture_grouped['Sales']
+sales_f = sales_f.droplevel(level=0)
+profit_f = furniture_grouped['Profit']
+profit_f = profit_f.droplevel(level=0)
+quantity_f = furniture_grouped['Quantity']
+quantity_f = quantity_f.droplevel(level=0)
+sales_f.index=sales_f.index.to_timestamp()
+profit_f.index=profit_f.index.to_timestamp()
+quantity_f.index=quantity_f.index.to_timestamp()
+##Office
+office_grouped = group(office_df)
+sales_o = office_grouped['Sales']
+sales_o = sales_o.droplevel(level=0)
+profit_o = office_grouped['Profit']
+profit_o = profit_o.droplevel(level=0)
+quantity_o = office_grouped['Quantity']
+quantity_o = quantity_o.droplevel(level=0)
+sales_o.index=sales_o.index.to_timestamp()
+profit_o.index=profit_o.index.to_timestamp()
+quantity_o.index=quantity_o.index.to_timestamp()
+##Tech
+tech_grouped = group(tech_df)
+sales_t = tech_grouped['Sales']
+sales_t = sales_t.droplevel(level=0)
+profit_t = tech_grouped['Profit']
+profit_t = profit_t.droplevel(level=0)
+quantity_t = tech_grouped['Quantity']
+quantity_t = quantity_t.droplevel(level=0)
+sales_t.index=sales_t.index.to_timestamp()
+profit_t.index=profit_t.index.to_timestamp()
+quantity_t.index=quantity_t.index.to_timestamp()
+###Start Timeseries analysis of the categories
 
 import statsmodels.api as sm
-y.index=y.index.to_timestamp()
-y1.index=y1.index.to_timestamp()
-y2.index=y2.index.to_timestamp()
 
+###Defined function to see the seasonality breakdown of each category
 def seasonal_decompose(y):
     decomposition = sm.tsa.seasonal_decompose(y,model='additive',)
     fig =decomposition.plot()
     fig.set_size_inches(14,7)
     plt.show()
 
-""" seasonal_decompose(y) """
 
-""" print(y) """
-
-
-#Building forecasting model based on the SARIMA
-#####SALES#####
-##testing Stationarity
+###Starting the SARIMA model for analysis and forecasting
+##Testing stationarity of data 
 
 def test_stationarity(timeseries, title):
     rolmean = pd.Series(timeseries).rolling(window=12).mean()
@@ -250,11 +259,12 @@ def test_stationarity(timeseries, title):
 
 pd.options.display.float_format = '{:.8f}'.format
 
-""" test_stationarity(y,'Raw Data') """
 
+##Testing Stationarity using the Augmented Dickery-Fuller Test
 
-#second test of stationarity Augmented Dickery-Fuller Test
 from statsmodels.tsa.stattools import adfuller
+
+##Defining function to use the ADF test of stationarity
 
 def ADF_test(timeseries, dataDesc):
     print('> Is the {} stationary ?'.format(dataDesc))
@@ -265,16 +275,39 @@ def ADF_test(timeseries, dataDesc):
     for k, v in dftest[4].items():
         print('\t{}: {} - the data is {} stationary with {}% confidence'.format(k,v,'not' if v < dftest[0] else '', 100-int(k[:-1])))
 
-""" ADF_test(y,'Sales') """
 
-""" print(y) """
+###getting data split for the to train data set, data to compare model to actual and getting length of forecast
 
-y_to_train = y[:'2016-12-01']
-y_to_val = y[:'2017-12-01']
-predict_date = len(y)-len(y_to_val)
+###Furniture
+furniture_sales_to_train = sales_f[:'2016-12-01']##y
+furniture_sales_to_validate = sales_f[:'2017-12-01']
+predict_date = len(furniture_sales_to_train)-len(furniture_sales_to_validate)
+furniture_profit_to_train = profit_f[:'2016-12-01'] ##y1
+furniture_profit_to_validate = profit_f[:'2017-12-01']
+furniture_quantity_to_train = quantity_f[:'2016-12-01']##y2
+furniture_quantity_to_validate = quantity_f[:'2017-12-01']
+###Office
+office_sales_to_train = sales_o[:'2016-12-01']
+office_sales_to_validate = sales_o[:'2017-12-01']
+office_profit_to_train = profit_o[:'2016-12-01']
+office_profit_to_validate = profit_o[:'2017-12-01']
+office_quantity_to_train = quantity_o[:'2016-12-01']
+office_quantity_to_validate = quantity_o[:'2017-12-01']
+###Tech
+tech_sales_to_train = sales_t[:'2016-12-01']
+tech_sales_to_validate = sales_t[:'2017-12-01']
+tech_profit_to_train = profit_t[:'2016-12-01']
+tech_profitto_validate = profit_t[:'2017-12-01']
+tech_quantity_to_train = quantity_t[:'2016-12-01']
+tech_quantity_to_validate = quantity_t[:'2017-12-01']
 
 
+
+
+
+###Implementing a grid search approach to find the optimal pramater values for the sarima
 import itertools
+
 
 def sarima_grid_search(y, seasonal_period):
     p = d = q  =range(0,2)
@@ -297,14 +330,11 @@ def sarima_grid_search(y, seasonal_period):
                     mini = results.aic
                     param_mini = param
                     param_seasonal_mini = param_seasonal
-#print('SARIMA{}x{} - AIC:{}'.format(param,param_seasonal,results.aic))
             except:
                 continue
     print('the set of params with min AIC is SARIMA{}x{} - AIC:{}'.format(param_mini, param_seasonal_mini, mini))
 
-""" sarima_grid_search(y,12) """
-
-
+###Function that returns the actual model for the data set
 def sarima_eva(y, order, seasonal_order, seasonal_period, pred_date, y_to_test):
     mod = sm.tsa.statespace.SARIMAX(
         y, 
@@ -373,10 +403,7 @@ def sarima_eva_plots(y,order,seasonal_order,seasonal_period,pred_date,y_to_test)
     plt.legend()
     plt.show()
 
-
-""" model = sarima_eva(y,(0,1,1),(0,1,1,12),12,'2016-12-01',y_to_val) """
-
-##predictive results for sales:
+###Define Function that makes the forecasted data
 
 def forecast(model, predict_steps, y):
     pred_uc = model.get_forecast(steps = predict_steps)
@@ -389,7 +416,10 @@ def forecast(model, predict_steps, y):
     final_table = pd.DataFrame(final_table)
 
     return(final_table)
-#new function for plot
+
+
+#Function that displays the forecasted data:
+
 def forecasted_plot(model,predict_steps,y):
     pred_uc = model.get_forecast(steps = predict_steps)
     pred_ci = pred_uc.conf_int()
@@ -406,70 +436,87 @@ def forecasted_plot(model,predict_steps,y):
 
 
 
-""" final_table = forecast(model,12,y)  """
+
+###Starting Forecasting for Quantity sold Category Furniture###
+
+#ADF_test(quantity_f, 'Quantity')
+
+###OUTPUT of Above ADF Test
+#Test statistic = -3.677
+#P-value = 0.004
+#Critical values :
+#        1%: -3.5778480370438146 - the data is  stationary with 99% confidence
+#        5%: -2.925338105429433 - the data is  stationary with 95% confidence
+#        10%: -2.6007735310095064 - the data is  stationary with 90% confidence
+
+#seasonal_decompose(quantity_f)
+#sarima_grid_search(quantity_f,12)
+
+##OUTPUT of grid search for furniture quantity sold
+# the set of params with min AIC is SARIMA(0, 1, 1)x(1, 1, 1, 12) - AIC:208.9779784268398##
+
+model_quantity_furniture = sarima_eva(quantity_f,(0, 1, 1),(1, 1, 1, 12),12,'2016-12-01',furniture_quantity_to_validate)
+
+##OUTPUT of Sarima_EVA
+#==============================================================================
+#                 coef    std err          z      P>|z|      [0.025      0.975]
+#------------------------------------------------------------------------------
+#ma.L1         -0.9353      0.216     -4.336      0.000      -1.358      -0.512
+#ar.S.L12      -0.3194      0.861     -0.371      0.711      -2.008       1.369
+#ma.S.L12      -0.0465      1.094     -0.042      0.966      -2.192       2.099
+#sigma2       926.2199    312.831      2.961      0.003     313.082    1539.358
+#==============================================================================
+#The Root Mean Squared Error of Sarima w/ seasonal_length=12 and dynamic = False 31.99
+#The Root Mean Square Error of Sarima w/season_length = 12 and dynamic = TRUE 34.45
 
 
-""" print(sales_furniture)  """
+###Running the plotting of the models and actuals
 
-###PROFIT###
-#1Seasonality Decomposition
-#seasonal_decompose(y1)
-#2 Stationarity
-#test_stationarity(y1,'Profit')
-#3 ADF test
-#ADF_test(y1,'Profit')
-#4Grid search for SARIMA paramaters:
-#sarima_grid_search(y1,12)
-#5 Model for SARIMA w/PARAMS^
-#model_1 = sarima_eva(y1,(0,1,1),(0,1,1,12),12,'2016-12-01',y1_to_val)
-#forecast(model,12,y)
-y1_to_eval = y1[:'2016-12-01']
-y1_to_val = y1[:'2017-12-01']
-predict_date = len(y1)-len(y1_to_val)
+#sarima_eva_plots(quantity_f,(0, 1, 1),(1, 1, 1, 12),12,'2016-12-01',furniture_quantity_to_validate)
+#forecasted_plot(model_quantity_furniture,12,quantity_f)
 
-""" sarima_eva(y1,(0,1,1),(0,1,1,12),12,'2016-12-01',y1_to_eval)
-
-model_1 = sarima_eva(y1,(0,1,1),(0,1,1,12),12,'2016-12-01',y1_to_val)
-
-forecast(model_1,12,y1)  """
-
-#Quantity of Items sold
-
-y2_to_eval = y2[:'2016-12-01']
-y2_to_val = y2[:'2017-12-01']
-predict_date = len(y2)-len(y2_to_val)
+##Getting the actual dataframe of forecasted outputs for furniture quantity
+out_f = forecast(model_quantity_furniture,12,quantity_f)
 
 
-""" ADF_test(y2,'Quantity Sold')
-seasonal_decompose(y2)
-sarima_grid_search(y2,12)
-model_2 = sarima_eva(y2,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
-sarima_eva_plots(y2,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
-print(model_2)
-print(forecast(model_2,12,y2))
-forecasted_plot(model_2,12,y2) """
+###Starting Forecasting for Quantity sold Category Office###
 
-model_2 = sarima_eva(y2,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
-####Results:
-#SARIMA is a good predictor for sales# and quantity sold: next finding the average profit per unit sold, using the predicted units sold to calculate
-#predicted profit amount
+#ADF_test(quantity_o, 'Quantity')
 
-F_average_profit_per_unit = round(sales_furniture['Profit'].sum()/sales_furniture['Quantity'].sum(),2)
-##Quantity
-out_f = forecast(model_2,12,y2)
+##OUTPUT of Above ADF test
+#Test statistic = -3.599
+#P-value = 0.006
+#Critical values :
+#        1%: -3.5778480370438146 - the data is  stationary with 99% confidence
+#        5%: -2.925338105429433 - the data is  stationary with 95% confidence
+#        10%: -2.6007735310095064 - the data is  stationary with 90% confidence
+
+#seasonal_decompose(quantity_o)
+
+#sarima_grid_search(quantity_o,12)
+
+# OUTPUT of Grid Search for Office Quantity Sold
+#the set of params with min AIC is SARIMA(0, 1, 1)x(0, 1, 1, 12) - AIC:252.39851522536642
+
+model_quantity_office = sarima_eva(quantity_o,(0, 1, 1),(0, 1, 1, 12),12,'2016-12-01',office_quantity_to_validate)
+out_o = forecast(model_quantity_office,12,quantity_o)
+
+###OUTPUT of Sarima eva 
+#==============================================================================
+#                 coef    std err          z      P>|z|      [0.025      0.975]
+#------------------------------------------------------------------------------
+#ma.L1         -0.6275      0.169     -3.720      0.000      -0.958      -0.297
+#ma.S.L12      -0.4162      0.241     -1.726      0.084      -0.889       0.056
+#sigma2      5615.6716   2041.893      2.750      0.006    1613.636    9617.708
+#==============================================================================
+#The Root Mean Squared Error of Sarima w/ seasonal_length=12 and dynamic = False 89.03
+#The Root Mean Square Error of Sarima w/season_length = 12 and dynamic = TRUE 131.91
+
+forecasted_plot(model_quantity_office,12,quantity_o)
+#sarima_eva_plots(quantity_o,(0, 1, 1),(0, 1, 1, 12),12,'2016-12-01',office_quantity_to_validate)
 
 
-sales_office = group(office_df)
-O_average_profit_per_unit = round(sales_office['Profit'].sum()/sales_office['Quantity'].sum(),2)
-sales_tech = group(tech_df)
-T_average_profit_per_unit = round(sales_tech['Profit'].sum()/sales_tech['Quantity'].sum(),2)
-sales_o = sales_office['Quantity']
-sales_o = sales_o.droplevel(level=0)
-sales_t = sales_tech['Quantity']
-sales_t = sales_t.droplevel(level=0)
-sales_o.index=sales_o.index.to_timestamp()
-sales_t.index=sales_t.index.to_timestamp()
-
+""" 
 #ADF_test(sales_o,'Quantity')
 #seasonal_decompose(sales_o)
 #sarima_grid_search(sales_o,12)
@@ -488,8 +535,6 @@ model_t = sarima_eva(sales_t,(0,1,1),(0,1,1,12),12,'2016-12-01',y1_to_eval)
 out_t = forecast(model_t,12,sales_t)
 
 
-####All three categories are stationary, next calculate average profit per unit sold, using that building a new DF with historical
-#profits + units and the forecasted amounts, make another plot with all three plus the lower, median, upper bounded forecasted amounts for the cats
 
 
 
@@ -505,7 +550,7 @@ out_o_2['Month'] = out_o_2['Date'].dt.to_period('M')
 out_o_2 = out_o_2.drop(columns='Date')
 out_o_2 = out_o_2.set_index(['Year', 'Month'])
 out_o_2 = out_o_2.rename(columns={'Predicted_Mean' : 'Profit'})
-""" print(O_average_sales_per_unit) """# = 31.39
+
 profit_office_array = np.array(out_o_2['Profit'])
 quantity_office_array = np.array(out_o['Predicted_Mean'])
 sales_office_array = np.array(out_o['Predicted_Mean']*31.39)
@@ -525,7 +570,7 @@ office_df_to_concat = office_df_to_concat.drop(columns='Date')
 office_df_to_concat = office_df_to_concat.set_index(['Year', 'Month'])
 
 
-sales_office_out = sales_office.drop(columns='Customers')
+sales_office_out = office_grouped.drop(columns='Customers')
 #list for the two dfs
 dfs = (sales_office_out,office_df_to_concat)
 
@@ -533,18 +578,18 @@ final_office_df = pd.concat(dfs)
 
 
 ##ALL OUT_XXX are for QUANTITY FORECASTS
-""" 
+
 print(out_t)
 print(out_f)
 print(out_o)
 
-"""
+
 ###OFFICE SUPPLIES FORECASTS DONE
 
 
 
 ###FURNITURE
-F_average_sales_per_unit = sales_furniture['Sales'].sum()/sales_furniture['Quantity'].sum()
+F_average_sales_per_unit = furniture_grouped['Sales'].sum()/furniture_grouped['Quantity'].sum()
 ##Furniture average sales per unit sold ========= $92.43
 ##Furniture average profit per unit sold ========= $2.3
 furniture_sales_forecast = np.array(out_f['Predicted_Mean']*F_average_sales_per_unit)
@@ -565,7 +610,7 @@ furniture_df_to_concat['Year'] = furniture_df_to_concat['Date'].dt.to_period('Y'
 furniture_df_to_concat['Month'] = furniture_df_to_concat['Date'].dt.to_period('M')
 furniture_df_to_concat = furniture_df_to_concat.drop(columns='Date')
 furniture_df_to_concat = furniture_df_to_concat.set_index(['Year','Month'])
-dfs_furniture = (sales_furniture,furniture_df_to_concat)
+dfs_furniture = (furniture_grouped,furniture_df_to_concat)
 
 final_furniture_df = pd.concat(dfs_furniture)
 final_furniture_df = final_furniture_df.drop(columns='Customers')
@@ -649,6 +694,7 @@ plt.legend()
 plt.show()
 
 
+print(answers(big_DFO, 2016, 'Customers'))
 
 
 
@@ -658,8 +704,7 @@ plt.show()
 
 
 
-
-
+ """
 
 
 
