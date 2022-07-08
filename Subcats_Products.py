@@ -17,26 +17,21 @@ column_names = main_data.columns
 
 
 
-furniture = main_data.loc[main_data['Category'] == 'Furniture']
+furniture = pd.DataFrame(main_data.loc[main_data['Category'] == 'Furniture'])
 tech = main_data.loc[main_data['Category'] == 'Technology']
 office = main_data.loc[main_data['Category'] == 'Office Supplies']
-
-
-
-""" furniture.SubCategory.hist()
-
-tech.SubCategory.hist()
-
-office.SubCategory.hist() """
 
 ###show the trends of the subcategories of each main category based on orders and one on profit amount
 
 
+
+###all of the unique subcategories for each of the main 3 categories 
 Furniture_Unique_Cats = ['Bookcases','Chairs', 'Tables', 'Furnishings']
 Office_Unique_Cats = ['Labels' ,'Storage' ,'Art', 'Binders', 'Appliances' ,'Paper', 'Envelopes', 'Fasteners', 'Supplies']
 Tech_Unique_Cats = ['Phones', 'Accessories', 'Machines', 'Copiers']
 
 
+###Function that takes each element of the lists above to break into their own DF comprised of one singular subcategory
 
 
 
@@ -47,4 +42,4 @@ Tech_Unique_Cats = ['Phones', 'Accessories', 'Machines', 'Copiers']
 
 
 
-
+print(furniture.columns.tolist())
