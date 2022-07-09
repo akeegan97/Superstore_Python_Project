@@ -512,145 +512,176 @@ out_o = forecast(model_quantity_office,12,quantity_o)
 #The Root Mean Squared Error of Sarima w/ seasonal_length=12 and dynamic = False 89.03
 #The Root Mean Square Error of Sarima w/season_length = 12 and dynamic = TRUE 131.91
 
-forecasted_plot(model_quantity_office,12,quantity_o)
+#forecasted_plot(model_quantity_office,12,quantity_o)
 #sarima_eva_plots(quantity_o,(0, 1, 1),(0, 1, 1, 12),12,'2016-12-01',office_quantity_to_validate)
 
 
+###Quantity Sold for Tech Category
+
+ADF_test(quantity_t,"Quantity")
+
+###OUTPUT of ADF test
+#Test statistic = -4.119
+#P-value = 0.001
+#Critical values :
+#        1%: -3.5778480370438146 - the data is  stationary with 99% confidence
+#        5%: -2.925338105429433 - the data is  stationary with 95% confidence
+#        10%: -2.6007735310095064 - the data is  stationary with 90% confidence
+
+###Decomposition of Seasonality for Tech Quantity
+#seasonal_decompose(quantity_t)
+
+###Sarima Paramater Grid Search
+#sarima_grid_search(quantity_f,12)
+
+###OUTPUT of grid search
+#the set of params with min AIC is SARIMA(0, 1, 1)x(1, 1, 1, 12) - AIC:208.9779784268398
+
+###Sarima model
+
+model_t = sarima_eva(quantity_t,(0, 1, 1),(1, 1, 1, 12),12,'2016-12-01',tech_quantity_to_validate)
+
+###OUTPUT of Sarima eva
+#==============================================================================
+#                 coef    std err          z      P>|z|      [0.025      0.975]
+#------------------------------------------------------------------------------
+#ma.L1         -1.2436      0.161     -7.745      0.000      -1.558      -0.929
+#ar.S.L12       0.5792      1.622      0.357      0.721      -2.601       3.759
+#ma.S.L12      -1.0002   2290.795     -0.000      1.000   -4490.875    4488.875
+#sigma2       819.4953   1.88e+06      0.000      1.000   -3.68e+06    3.68e+06
+#==============================================================================
+#The Root Mean Squared Error of Sarima w/ seasonal_length=12 and dynamic = False 46.32
+#The Root Mean Square Error of Sarima w/season_length = 12 and dynamic = TRUE 54.87
+
+
+#forecasted_plot(model_t,12,quantity_t)
+
+
+out_t = forecast(model_t,12,quantity_t)
+
+
+
+####out_t,out_f,out_o are DF that contain the forecasted values based on the Sarima model
+
+###want to combine the out_xyz with the xyz_quantity DF in order to plot the forecasted amounts
+###generalized average profit per unit sold and sales per unit sold for each of the three categories
+
+
+
+##Average profit/sales per unit
+#Furniture
+F_average_profit_per_unit = round(furniture_grouped['Profit'].sum()/furniture_grouped['Quantity'].sum(),2)
+F_average_sales_per_unit = round(furniture_grouped['Sales'].sum()/furniture_grouped['Quantity'].sum(),2)
+#Tech
+T_average_profit_per_unit = round(tech_grouped['Profit'].sum()/tech_grouped['Quantity'].sum(),2)
+T_average_sales_per_unit = round(tech_grouped['Sales'].sum()/tech_grouped['Quantity'].sum(),2)
+#Office
+O_average_profit_per_unit = round(office_grouped['Profit'].sum()/office_grouped['Quantity'].sum(),2)
+O_average_sales_per_unit = round(office_grouped['Sales'].sum()/office_grouped['Quantity'].sum(),2)
+
+##Getting the Mean forecast of each category
+furniture_forecast_Q = out_f['Predicted_Mean'] 
+tech_forecast_Q = out_t['Predicted_Mean']
+office_forecast_Q = out_o['Predicted_Mean']
+
+
+out_t_to_concat = out_t.copy(deep=True)
+out_t_to_concat['Date'] = pd.to_datetime(out_t['Date'],infer_datetime_format= True)
+out_t_to_concat['Year'] = out_t_to_concat['Date'].dt.to_period('Y')
+out_t_to_concat['Month'] =out_t_to_concat['Date'].dt.to_period('M')
+out_t_to_concat = out_t_to_concat.drop(columns='Date')
+out_t_to_concat = out_t_to_concat.set_index(['Year','Month'])
+out_t_to_concat = out_t_to_concat.rename(columns={'Predicted_Mean':'Quantity'})
+
+
+out_t_profit = np.array(out_t_to_concat['Quantity'] * T_average_profit_per_unit)
+out_t_sales = np.array(out_t_to_concat['Quantity']*T_average_sales_per_unit)
+out_t_quantity = np.array(out_t_to_concat['Quantity'])
+index_out = pd.to_datetime(out_t['Date'],infer_datetime_format= True)
+out_t_df = pd.DataFrame(
+{
+        'Date' : index_out,
+        'Sales':out_t_sales,
+        'Profit':out_t_profit,
+        'Quantity':out_t_quantity
+}
+)
+
+
+###Function to make the concat dfs 
+
+def concat(df1,ppq1,spq1):
+    df1 = pd.DataFrame(df1)
+    df_out_1 = df1.copy(deep=True)
+    df_out_1['Date'] = pd.to_datetime(df1['Date'],infer_datetime_format=True)
+    df_out_1 = df_out_1.rename(columns={'Predicted_Mean':'Quantity'})
+    index_out = df_out_1['Date'] = pd.to_datetime(df1['Date'],infer_datetime_format=True)
+    out_p_1 = np.array(df_out_1['Quantity']*ppq1)
+    out_s_1 = np.array(df_out_1['Quantity']*spq1)
+    out_q_1 = np.array(df_out_1['Quantity'])
+    df_out_1['Year'] = df_out_1['Date'].dt.to_period('Y')
+    df_out_1['Month'] = df_out_1['Date'].dt.to_period('M')
+    df_out_1 = df_out_1.drop(columns='Date')
+    df_out_1 = df_out_1.set_index(['Year','Month'])
+    df = pd.DataFrame(
+    {
+        'Date' : index_out,
+        'Sales':out_s_1,
+        'Quantity':out_q_1,
+        'Profit' :out_p_1
+    }
+    )
+    df['Year'] = df['Date'].dt.to_period('Y')
+    df['Month'] = df['Date'].dt.to_period('M')
+    df = df.drop(columns='Date')
+    df = df.set_index(['Year','Month'])
+
+    return df
+
+forecast_f = concat(out_f,F_average_profit_per_unit,F_average_sales_per_unit)
+forecast_t = concat(out_t,T_average_profit_per_unit,T_average_sales_per_unit)
+forecast_o = concat(out_o,O_average_profit_per_unit,O_average_sales_per_unit)
+
+furniture_to_concat = furniture_grouped.drop(columns='Customers')
+tech_to_concat = tech_grouped.drop(columns='Customers')
+office_to_concat = office_grouped.drop(columns='Customers')
+
+print(furniture_to_concat)
+
+dfs_furniture = (furniture_to_concat,forecast_f)
+dfs_tech = (tech_to_concat,forecast_t)
+dfs_office = (office_to_concat,forecast_o)
+total_furniture = pd.DataFrame(pd.concat(dfs_furniture))
+total_office = pd.DataFrame(pd.concat(dfs_office))
+total_tech = pd.DataFrame(pd.concat(dfs_tech))
+
+print(total_furniture)
+
+####Plotting
+
+
+sales_plot_f=np.array(total_furniture['Sales'].values)
+sales_plot_t=np.array(total_tech['Sales'].values)
+sales_plot_o=np.array(total_office['Sales'].values)
+
+profit_plot_f=np.array(total_furniture['Profit'].values)
+profit_plot_t=np.array(total_tech['Profit'].values)
+profit_plot_o=np.array(total_office['Profit'].values)
+
+quantity_plot_f=np.array(total_furniture['Quantity'])
+quantity_plot_t = np.array(total_tech['Quantity'])
+quantity_plot_o=np.array(total_office['Quantity'])
+
+plotting_timeseries = total_office.droplevel(level=0)
+plotting_timeseries = total_office.reset_index()
+plotting_timeseries['Month'] = plotting_timeseries['Month'].dt.to_timestamp('s').dt.strftime('%Y-%m')
+plot_ts = plotting_timeseries['Month']
+
+
+
+
+
 """ 
-#ADF_test(sales_o,'Quantity')
-#seasonal_decompose(sales_o)
-#sarima_grid_search(sales_o,12)
-model_o = sarima_eva(sales_o,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
-#sarima_eva_plots(sales_o,(0,1,1),(1,1,1,12),12,'2016-12-01',y2_to_eval)
-#forecasted_plot(model_o,12,sales_o)
-
-out_o = forecast(model_o,12,sales_o)
-
-#ADF_test(sales_t,'Quantity')
-#seasonal_decompose(sales_t)
-#sarima_grid_search(sales_t,12)
-model_t = sarima_eva(sales_t,(0,1,1),(0,1,1,12),12,'2016-12-01',y1_to_eval)
-#sarima_eva_plots(sales_t,(0,1,1),(0,1,1,12),12,'2016-12-01',y1_to_eval)
-#forecasted_plot(model_t,12,sales_t)
-out_t = forecast(model_t,12,sales_t)
-
-
-
-
-
-out_o_2 = out_o.copy(deep=True)
-
-O_average_sales_per_unit = round(sales_office['Sales'].sum()/sales_office['Quantity'].sum(),2)
-#AVERAGE PROFIT PER UNIT SOLD $5.35
-
-out_o_2[['Predicted_Mean','Lower Bound','Upper Bound']] = out_o_2[['Predicted_Mean','Lower Bound','Upper Bound']] * O_average_profit_per_unit
-out_o_2['Date'] = pd.to_datetime(out_o_2['Date'], infer_datetime_format= True)
-out_o_2['Year'] = out_o_2['Date'].dt.to_period('Y')
-out_o_2['Month'] = out_o_2['Date'].dt.to_period('M')
-out_o_2 = out_o_2.drop(columns='Date')
-out_o_2 = out_o_2.set_index(['Year', 'Month'])
-out_o_2 = out_o_2.rename(columns={'Predicted_Mean' : 'Profit'})
-
-profit_office_array = np.array(out_o_2['Profit'])
-quantity_office_array = np.array(out_o['Predicted_Mean'])
-sales_office_array = np.array(out_o['Predicted_Mean']*31.39)
-index_out = pd.to_datetime(out_o['Date'],infer_datetime_format= True)
-
-#building DF to use to concat with the origin office grouped DF
-office_df_to_concat = pd.DataFrame({
-    'Date' : index_out,
-    'Sales': sales_office_array,
-    'Quantity' : quantity_office_array,
-    'Profit' : profit_office_array,
-})
-#cleaning up DF formatting
-office_df_to_concat['Year']=office_df_to_concat['Date'].dt.to_period('Y')
-office_df_to_concat['Month']=office_df_to_concat['Date'].dt.to_period('M')
-office_df_to_concat = office_df_to_concat.drop(columns='Date')
-office_df_to_concat = office_df_to_concat.set_index(['Year', 'Month'])
-
-
-sales_office_out = office_grouped.drop(columns='Customers')
-#list for the two dfs
-dfs = (sales_office_out,office_df_to_concat)
-
-final_office_df = pd.concat(dfs)
-
-
-##ALL OUT_XXX are for QUANTITY FORECASTS
-
-print(out_t)
-print(out_f)
-print(out_o)
-
-
-###OFFICE SUPPLIES FORECASTS DONE
-
-
-
-###FURNITURE
-F_average_sales_per_unit = furniture_grouped['Sales'].sum()/furniture_grouped['Quantity'].sum()
-##Furniture average sales per unit sold ========= $92.43
-##Furniture average profit per unit sold ========= $2.3
-furniture_sales_forecast = np.array(out_f['Predicted_Mean']*F_average_sales_per_unit)
-furniture_profit_forecat = np.array(out_f['Predicted_Mean']*F_average_profit_per_unit)
-furniture_date = pd.to_datetime(out_f['Date'])
-furniture_units = np.array(out_f['Predicted_Mean'])
-
-furniture_df_to_concat = pd.DataFrame(
-    {
-    'Date' : furniture_date,
-    'Sales': furniture_sales_forecast,
-    'Quantity' : furniture_units,
-    'Profit' : furniture_profit_forecat
-}
-)
-
-furniture_df_to_concat['Year'] = furniture_df_to_concat['Date'].dt.to_period('Y')
-furniture_df_to_concat['Month'] = furniture_df_to_concat['Date'].dt.to_period('M')
-furniture_df_to_concat = furniture_df_to_concat.drop(columns='Date')
-furniture_df_to_concat = furniture_df_to_concat.set_index(['Year','Month'])
-dfs_furniture = (furniture_grouped,furniture_df_to_concat)
-
-final_furniture_df = pd.concat(dfs_furniture)
-final_furniture_df = final_furniture_df.drop(columns='Customers')
-
-
-out_f_sales = out_f[['Predicted_Mean','Lower Bound','Upper Bound']] * F_average_sales_per_unit
-out_f_profit = out_f[['Predicted_Mean','Lower Bound', 'Upper Bound']] * F_average_profit_per_unit
-out_o_sales = out_o[['Predicted_Mean','Lower Bound', 'Upper Bound']]* O_average_sales_per_unit
-out_o_profit = out_o[['Predicted_Mean','Lower Bound', 'Upper Bound']] * O_average_profit_per_unit
-
-##Tech forecast + Historicals
-
-T_average_sales_per_unit = sales_tech['Sales'].sum()/sales_tech['Quantity'].sum()
-
-out_t_sales = out_t[['Predicted_Mean', 'Lower Bound', 'Upper Bound']] * T_average_sales_per_unit
-out_t_profit = out_t[['Predicted_Mean', 'Lower Bound', 'Upper Bound']] * T_average_profit_per_unit
-
-sales_tech_forecast = np.array(out_t_sales['Predicted_Mean'])
-profit_tech_forecast = np.array(out_t_profit['Predicted_Mean'])
-tech_date = pd.to_datetime(out_t['Date'])
-tech_units = np.array(out_t['Predicted_Mean'])
-
-tech_df_to_concat = pd.DataFrame(
-    {
-    'Date' : tech_date,
-    'Sales': sales_tech_forecast,
-    'Quantity' : tech_units,
-    'Profit' : profit_tech_forecast
-}
-)
-
-tech_df_to_concat['Year'] = tech_df_to_concat['Date'].dt.to_period('Y')
-tech_df_to_concat['Month'] = tech_df_to_concat['Date'].dt.to_period('M')
-tech_df_to_concat = tech_df_to_concat.drop(columns='Date')
-tech_df_to_concat = tech_df_to_concat.set_index(['Year','Month'])
-dfs_tech = (sales_tech,tech_df_to_concat)
-
-final_tech_df = pd.concat(dfs_tech)
-final_tech_df = final_tech_df.drop(columns='Customers')
-
 
 
 ##from here plots
