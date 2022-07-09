@@ -279,12 +279,12 @@ def ADF_test(timeseries, dataDesc):
 ###getting data split for the to train data set, data to compare model to actual and getting length of forecast
 
 ###Furniture
-furniture_sales_to_train = sales_f[:'2016-12-01']##y
+furniture_sales_to_train = sales_f[:'2016-12-01']
 furniture_sales_to_validate = sales_f[:'2017-12-01']
 predict_date = len(furniture_sales_to_train)-len(furniture_sales_to_validate)
-furniture_profit_to_train = profit_f[:'2016-12-01'] ##y1
+furniture_profit_to_train = profit_f[:'2016-12-01'] 
 furniture_profit_to_validate = profit_f[:'2017-12-01']
-furniture_quantity_to_train = quantity_f[:'2016-12-01']##y2
+furniture_quantity_to_train = quantity_f[:'2016-12-01']
 furniture_quantity_to_validate = quantity_f[:'2017-12-01']
 ###Office
 office_sales_to_train = sales_o[:'2016-12-01']
@@ -646,7 +646,7 @@ furniture_to_concat = furniture_grouped.drop(columns='Customers')
 tech_to_concat = tech_grouped.drop(columns='Customers')
 office_to_concat = office_grouped.drop(columns='Customers')
 
-print(furniture_to_concat)
+
 
 dfs_furniture = (furniture_to_concat,forecast_f)
 dfs_tech = (tech_to_concat,forecast_t)
@@ -655,10 +655,10 @@ total_furniture = pd.DataFrame(pd.concat(dfs_furniture))
 total_office = pd.DataFrame(pd.concat(dfs_office))
 total_tech = pd.DataFrame(pd.concat(dfs_tech))
 
-print(total_furniture)
+
 
 ####Plotting
-
+###Getting the x,y arrays necessary to plot
 
 sales_plot_f=np.array(total_furniture['Sales'].values)
 sales_plot_t=np.array(total_tech['Sales'].values)
@@ -678,64 +678,39 @@ plotting_timeseries['Month'] = plotting_timeseries['Month'].dt.to_timestamp('s')
 plot_ts = plotting_timeseries['Month']
 
 
+###Creating function to call that will display the forecasted profit,sales,quantity 
+def final(plot):
+    x_ticks = 12
+    if plot == 'Yes' :
+        plt.figure(figsize=(18,7))
+        plt.plot(plot_ts,quantity_plot_f,'r',label = 'Furniture Quantity')
+        plt.plot(plot_ts,quantity_plot_o,'g',label='Office Quantity')
+        plt.plot(plot_ts,quantity_plot_t,'y',label='Tech Quantity')
+        plt.xticks(range(0,len(plot_ts),x_ticks),plot_ts[::x_ticks],rotation = 45)
+        plt.axvline('2018-01',label='Forecast')
+        plt.axvspan('2018-01','2018-12',facecolor = 'blue',alpha = .25)
+        plt.title('Historical and Forecasted Units Sold')
+        plt.legend()
+        """ plt.show() """
+        plt.figure(figsize=(18,7))
+        plt.plot(plot_ts,profit_plot_f,'r',label='Furniture Profit')
+        plt.plot(plot_ts,profit_plot_o,'g',label = 'Office Profit')
+        plt.plot(plot_ts,profit_plot_t,'y',label='Tech Profit')
+        plt.xticks(range(0,len(plot_ts),x_ticks),plot_ts[::x_ticks],rotation = 45)
+        plt.axvline('2018-01',label='Forecast')
+        plt.axvspan('2018-01','2018-12',facecolor = 'blue',alpha = .25)
+        plt.title('Historical and Forecasted Profit \n Based on Average Profit per Unit Sold')
+        plt.legend()
+        plt.show()
+
+    else:
+        print('No')
 
 
+final('Yes')
 
-""" 
+print(answers(big_DFO,'2016','Profit'))
 
-
-##from here plots
-
-##sales
-
-sales_furniture_plot = np.array(final_furniture_df['Sales'])
-sales_tech_plot = np.array(final_tech_df['Sales'])
-sales_office_plot = np.array(final_office_df['Sales'])
-profit_furniture_plot = np.array(final_furniture_df['Profit'])
-profit_office_plot =np.array(final_office_df['Profit'])
-profit_tech_plot = np.array(final_tech_df['Profit'])
-
-#getting x-value-timeseries
-new_axis_df = final_furniture_df.droplevel(level=0)
-
-new_axis_df = new_axis_df.reset_index()
-
-new_axis_df['Month'] = new_axis_df['Month'].dt.to_timestamp('s').dt.strftime('%Y-%m')
-
-x_axis = new_axis_df['Month']
-
-x_TICKS = 12
-plt.figure(figsize=(18,7))
-plt.plot(x_axis, sales_furniture_plot, 'r', label = 'Furniture Sales')
-plt.plot(x_axis,sales_tech_plot,'b', label = 'Tech Sales')
-plt.plot(x_axis, sales_office_plot,'c', label = 'Office Sales')
-plt.xticks(range(0, len(x_axis), x_TICKS),x_axis[::x_TICKS], rotation = 45)
-plt.title('Sales Historical + Forecasted \n Furniture Office Tech')
-plt.legend()
-plt.show()
-
-x_TICKS = 12
-plt.figure(figsize=(18,7))
-plt.plot(x_axis,profit_furniture_plot,'r', label = 'Furniture Profit')
-plt.plot(x_axis,profit_office_plot,'b', label = 'Office Profit')
-plt.plot(x_axis,profit_tech_plot,'c', label = 'Tech Profit')
-plt.xticks(range(0, len(x_axis), x_TICKS),x_axis[::x_TICKS], rotation = 45)
-plt.title('Profit Historical + Forecasted \n Furniture Office Tech')
-plt.legend()
-plt.show()
-
-
-print(answers(big_DFO, 2016, 'Customers'))
-
-
-
-
-
-
-
-
-
- """
 
 
 
