@@ -690,8 +690,8 @@ def final(plot):
         plt.axvline('2018-01',label='Forecast')
         plt.axvspan('2018-01','2018-12',facecolor = 'blue',alpha = .25)
         plt.title('Historical and Forecasted \n Units Sold')
-        plt.savefig(r'C:\Users\Andrew\Desktop\Python_Projects\Website\images\profit_forecast.png', bbox_inches = 'tight')
         plt.legend()
+        plt.savefig(r'C:\Users\Andrew\Desktop\Python_Projects\Website\images\profit_forecast.png', bbox_inches = 'tight')
         """ plt.show() """
         plt.figure(figsize=(18,7))
         plt.plot(plot_ts,profit_plot_f,'r',label='Furniture Profit')
@@ -701,8 +701,8 @@ def final(plot):
         plt.axvline('2018-01',label='Forecast')
         plt.axvspan('2018-01','2018-12',facecolor = 'blue',alpha = .25)
         plt.title('Historical and Forecasted Profit \n Based on Average Profit per Unit Sold')
-        plt.savefig(r'C:\Users\Andrew\Desktop\Python_Projects\Website\images\units_sold_forecast.png', bbox_inches = 'tight')
         plt.legend()
+        plt.savefig(r'C:\Users\Andrew\Desktop\Python_Projects\Website\images\units_sold_forecast.png', bbox_inches = 'tight')
         plt.show()
 
     else:
