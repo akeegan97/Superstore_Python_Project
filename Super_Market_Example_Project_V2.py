@@ -58,6 +58,7 @@ def getinfo(df,y1,y2,y3,y4,title):
     customers = df1['CustomerID'].nunique()
     region = mode(list(df1['Region']))
     state = mode(list(df1['State']))
+    quantity = df1['Quantity'].sum()
 
     dataframe = {
         'Sales' : [sales],
@@ -66,7 +67,8 @@ def getinfo(df,y1,y2,y3,y4,title):
         'Region' : [region],
         'State' : [state],
         'Year' : [y1],
-        'Category' : [title]
+        'Category' : [title],
+        'Quantity' : [quantity]
     }
     
     dataframe = pd.DataFrame(dataframe)
@@ -79,6 +81,7 @@ def getinfo(df,y1,y2,y3,y4,title):
     customers = df2['CustomerID'].nunique()
     region = mode(list(df2['Region']))
     state = mode(list(df2['State']))
+    quantity = df2['Quantity'].sum()
 
     dataframe2 = {
         'Sales' : [sales],
@@ -87,7 +90,8 @@ def getinfo(df,y1,y2,y3,y4,title):
         'Region' : [region],
         'State' : [state],
         'Year' : [y2],
-        'Category' : [title]
+        'Category' : [title],
+        'Quantity' : [quantity]
     }
     
 
@@ -101,6 +105,7 @@ def getinfo(df,y1,y2,y3,y4,title):
     region = mode(list(df3['Region']))
     state = mode(list(df3['State']))
     sales = df3['Sales'].sum()
+    quantity = df3['Quantity'].sum()
 
     dataframe3 = {
         'Sales' : [sales],
@@ -109,7 +114,8 @@ def getinfo(df,y1,y2,y3,y4,title):
         'Region' : [region],
         'State' : [state],
         'Year' : [y3],
-        'Category' : [title]
+        'Category' : [title],
+        'Quantity' : [quantity]
     }
     
     dataframe3 = pd.DataFrame(dataframe3)
@@ -121,6 +127,7 @@ def getinfo(df,y1,y2,y3,y4,title):
     region = mode(list(df4['Region']))
     state = mode(list(df4['State']))
     sales = df4['Sales'].sum()
+    quantity = df4['Quantity'].sum()
 
     dataframe4 = {
         'Sales' : [sales],
@@ -129,7 +136,8 @@ def getinfo(df,y1,y2,y3,y4,title):
         'Region' : [region],
         'State' : [state],
         'Year' : [y4],
-        'Category' : [title] 
+        'Category' : [title],
+        'Quantity' : [quantity]
     }
     
     dataframe4 = pd.DataFrame(dataframe4)
@@ -691,7 +699,7 @@ def final(plot):
         plt.axvspan('2018-01','2018-12',facecolor = 'blue',alpha = .25)
         plt.title('Historical and Forecasted \n Units Sold')
         plt.legend()
-        plt.savefig(r'C:\Users\Andrew\Desktop\Python_Projects\Website\images\profit_forecast.png', bbox_inches = 'tight')
+        plt.savefig(r'C:\Users\Andrew\Desktop\Python_Projects\Website\images\profit_forecast.jpg', bbox_inches = 'tight')
         """ plt.show() """
         plt.figure(figsize=(18,7))
         plt.plot(plot_ts,profit_plot_f,'r',label='Furniture Profit')
@@ -702,14 +710,14 @@ def final(plot):
         plt.axvspan('2018-01','2018-12',facecolor = 'blue',alpha = .25)
         plt.title('Historical and Forecasted Profit \n Based on Average Profit per Unit Sold')
         plt.legend()
-        plt.savefig(r'C:\Users\Andrew\Desktop\Python_Projects\Website\images\units_sold_forecast.png', bbox_inches = 'tight')
+        plt.savefig(r'C:\Users\Andrew\Desktop\Python_Projects\Website\images\units_sold_forecast.jpg', bbox_inches = 'tight')
         plt.show()
 
     else:
         print('No')
 
 
-final('Yes')
+final('No')
 
 print(answers(big_DFO,'2016','Profit'))
 
