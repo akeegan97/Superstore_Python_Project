@@ -371,7 +371,7 @@ def sarima_eva(y, order, seasonal_order, seasonal_period, pred_date, y_to_test):
 
 #function for evaluation plots:
 
-def sarima_eva_plots(y,order,seasonal_order,seasonal_period,pred_date,y_to_test):
+def sarima_eva_plots(y,order,seasonal_order,pred_date,y_to_test):
     mod = sm.tsa.statespace.SARIMAX(
         y, 
     order=order,
@@ -379,7 +379,7 @@ def sarima_eva_plots(y,order,seasonal_order,seasonal_period,pred_date,y_to_test)
     enforce_invertibility=False,
     )
     results = mod.fit()
-    results.plot_diagnostics(figsize=(16,8))
+    results.plot_diagnostics(figsize=(16,14))
     plt.show()
     pred = results.get_prediction(start=pd.to_datetime(pred_date),dynamic = False)
     pred_ci = pred.conf_int()
@@ -392,7 +392,7 @@ def sarima_eva_plots(y,order,seasonal_order,seasonal_period,pred_date,y_to_test)
     pred_ci.iloc[:,1], color = 'k', alpha = .2)
 
     ax.set_xlabel('Date')
-    ax.set_ylabel('Sessions')
+    ax.set_ylabel('Quantity')
     plt.legend()
     plt.show()
     pred_dynamic = results.get_prediction(start = pd.to_datetime(pred_date), dynamic = True, full_results = True)
@@ -407,7 +407,7 @@ def sarima_eva_plots(y,order,seasonal_order,seasonal_period,pred_date,y_to_test)
     pred_dynamic_ci.iloc[:,1], color = 'k', alpha = .2)
 
     ax.set_xlabel('Date')
-    ax.set_ylabel('Sessions')
+    ax.set_ylabel('Quantity')
     plt.legend()
     plt.show()
 
@@ -457,7 +457,7 @@ def forecasted_plot(model,predict_steps,y):
 #        5%: -2.925338105429433 - the data is  stationary with 95% confidence
 #        10%: -2.6007735310095064 - the data is  stationary with 90% confidence
 
-#seasonal_decompose(quantity_f)
+
 #sarima_grid_search(quantity_f,12)
 
 ##OUTPUT of grid search for furniture quantity sold
@@ -480,7 +480,7 @@ model_quantity_furniture = sarima_eva(quantity_f,(0, 1, 1),(1, 1, 1, 12),12,'201
 
 ###Running the plotting of the models and actuals
 
-#sarima_eva_plots(quantity_f,(0, 1, 1),(1, 1, 1, 12),12,'2016-12-01',furniture_quantity_to_validate)
+sarima_eva_plots(quantity_f,(0, 1, 1),(1, 1, 1, 12),12,'2016-12-01',furniture_quantity_to_validate)
 #forecasted_plot(model_quantity_furniture,12,quantity_f)
 
 ##Getting the actual dataframe of forecasted outputs for furniture quantity
@@ -722,6 +722,10 @@ final('No')
 print(answers(big_DFO,'2016','Profit'))
 
 print(big_DFO)
+
+
+
+print(out_t)
 
 
 
