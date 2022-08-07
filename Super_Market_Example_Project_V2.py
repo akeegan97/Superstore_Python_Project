@@ -480,7 +480,7 @@ model_quantity_furniture = sarima_eva(quantity_f,(0, 1, 1),(1, 1, 1, 12),12,'201
 
 ###Running the plotting of the models and actuals
 
-sarima_eva_plots(quantity_f,(0, 1, 1),(1, 1, 1, 12),12,'2016-12-01',furniture_quantity_to_validate)
+sarima_eva_plots(quantity_f,(0, 1, 1),(1, 1, 1, 12),'2016-12-01',furniture_quantity_to_validate)
 #forecasted_plot(model_quantity_furniture,12,quantity_f)
 
 ##Getting the actual dataframe of forecasted outputs for furniture quantity
