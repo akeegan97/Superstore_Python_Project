@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 
 #import data set
-super_store_data  = r"C:\Users\Andrew\Desktop\Python_Projects\Super_Market_Project\Sample - Superstore.csv"
+super_store_data  = r".\Sample - Superstore.csv"
 raw_data = pd.read_csv(super_store_data, encoding='Latin1')
 
 """ print(raw_data.head()) """
@@ -699,7 +699,7 @@ def final(plot):
         plt.axvspan('2018-01','2018-12',facecolor = 'blue',alpha = .25)
         plt.title('Historical and Forecasted \n Units Sold')
         plt.legend()
-        plt.savefig(r'C:\Users\Andrew\Desktop\Python_Projects\Website\images\profit_forecast.jpg', bbox_inches = 'tight')
+        plt.savefig(r'.\profit_forecast.jpg', bbox_inches = 'tight')
         """ plt.show() """
         plt.figure(figsize=(18,7))
         plt.plot(plot_ts,profit_plot_f,'r',label='Furniture Profit')
@@ -710,16 +710,16 @@ def final(plot):
         plt.axvspan('2018-01','2018-12',facecolor = 'blue',alpha = .25)
         plt.title('Historical and Forecasted Profit \n Based on Average Profit per Unit Sold')
         plt.legend()
-        plt.savefig(r'C:\Users\Andrew\Desktop\Python_Projects\Website\images\units_sold_forecast.jpg', bbox_inches = 'tight')
+        plt.savefig(r'.\units_sold_forecast.jpg', bbox_inches = 'tight')
         plt.show()
 
     else:
         print('No')
 
 
-final('No')
+final('Yes')
 
-print(answers(big_DFO,'2016','Profit'))
+#print(answers(big_DFO,'2016','Profit'))
 
 print(big_DFO)
 
